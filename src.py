@@ -240,7 +240,7 @@ def initialize_model_for_training(presaved_encoder):
 
 # use this if you want Initialize Our Model with encoder weights from a file
 def initialize_model_for_training_file(presaved_encoder_file):
-    presaved_encoder = PreTaskEncoder(6)
+    presaved_encoder = PreTaskEncoder()
     presaved_encoder.load_state_dict(torch.load(presaved_encoder_file))
     presaved_encoder.eval()
 
@@ -257,7 +257,7 @@ def total_joint_loss(yolo_loss, rm_loss, lambd):
     return yolo_loss + lambd * rm_loss
 
 
-ENCODER_HIDDEN = int(26718 / 2) * 2
+ENCODER_HIDDEN = int(26718 / 2)
 
 
 class PreTaskEncoder(nn.Module):
@@ -270,7 +270,7 @@ class PreTaskEncoder(nn.Module):
                                kernel_size=5,
                                )
         self.conv2 = nn.Conv2d(n_features,
-                               int(n_features / 2) * 2,
+                               int(n_features / 2),
                                kernel_size=5)
     
     def forward(self, x):
