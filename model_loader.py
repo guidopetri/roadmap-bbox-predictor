@@ -19,30 +19,55 @@ def get_transform():
     # ])
     pass
 
+# Put your transform function here, we will use it for our dataloader
+# For bounding boxes task
+def get_transform_task1(): 
+    return torchvision.transforms.ToTensor()
+# For road map task
+def get_transform_task2(): 
+    return torchvision.transforms.ToTensor()
+
 class ModelLoader():
     # Fill the information for your team
-    team_name = ''
-    team_member = []
-    contact_email = '@nyu.edu'
+    team_name = 'Los Tres Latinos'
+    team_number = 13
+    round_number = 3
+    team_member = ['Nabeel Sarwar', 'Esteban Navarro Garaiz', 'Guido Petri']
+    contact_email = 'gp1655@nyu.edu'
 
-    def __init__(model_file):
+    def __init__(self, model_file='kobe_model_no_pretrain_3_epochs.pt'):
         # You should 
         #       1. create the model object
         #       2. load your state_dict
         #       3. call cuda()
         # self.model = ...
-        # 
-        pass
+        
+        self.model = KobeModel(num_classes = 10,
+                               encoder_features = 6,
+                               rm_dim = 800)
+        
+        self.model.load_state_dict(torch.load(model_file))
+        self.model.eval()
+        
+        self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+        
+        self.model.to(self.device)
+        
 
-    def get_bounding_boxes(samples):
+    def get_bounding_boxes(self, samples):
         # samples is a cuda tensor with size [batch_size, 6, 3, 256, 306]
         # You need to return a tuple with size 'batch_size' and each element is a cuda tensor [N, 2, 4]
         # where N is the number of object
+        samples.to(self.device)
+        boxes, _ = self.model.get_bounding_boxes(samples)
 
-        pass
+        return boxes[0].view(1, -1, 2, 4).cuda()
 
-    def get_binary_road_map(samples):
+    def get_binary_road_map(self, samples):
         # samples is a cuda tensor with size [batch_size, 6, 3, 256, 306]
         # You need to return a cuda tensor with size [batch_size, 800, 800] 
         
-        pass
+        samples.to(self.device)
+        road_map, _ = self.model.get_road_map(samples)
+        
+        return road_map.view(1, 800, 800).cuda()
