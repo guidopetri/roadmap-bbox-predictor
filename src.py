@@ -2,14 +2,10 @@
 
 import torch
 import torch.nn as nn
-
 from torch.autograd import Variable
 import torch.nn.functional as F
-
 import numpy as np
-
 import torchvision
-
 from data_helper import UnlabeledDataset, LabeledDataset
 from helper import collate_fn, draw_box
 
@@ -33,6 +29,7 @@ FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 IntTensor = torch.cuda.IntTensor if cuda else torch.IntTensor
 LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
 BoolTensor = torch.cuda.BoolTensor if cuda else torch.BoolTensor
+
 
 def target_encode(boxes, labels):
         """ Encode box coordinates and class labels as one target tensor.
@@ -129,13 +126,13 @@ def pred_decode(pred_tensor, conf_thresh=0.1, prob_thresh=0.1):
 
         return boxes, labels, confidences, class_scores
 
+
 def nms(boxes, scores, nms_thresh = 0.35):
     """ Apply non maximum supression.
     Args:
     Returns:
     """
     threshold = nms_thresh
-
 
     x1 = boxes[:, 0] # [n,]
     y1 = boxes[:, 1] # [n,]
@@ -172,9 +169,8 @@ def nms(boxes, scores, nms_thresh = 0.35):
         ids_sorted = ids_sorted[ids_keep+1] # `+1` is needed because `ids_sorted[0] = i`.
 
     return LongTensor(ids)
-    
-## input is the 
-# want output that is
+
+
 def transform_target(in_target):
     
     out_target = []
@@ -223,6 +219,7 @@ def transform_target(in_target):
         
     return torch.stack(out_target, dim = 0) 
 
+
 # works by side effects
 def load_pretask_weight_from_model(model, presaved_encoder):
     model.encoder.load_state_dict(presaved_encoder.state_dict())
@@ -232,6 +229,7 @@ def load_pretask_weight_from_model(model, presaved_encoder):
         
     return model
 
+
 # use this if you want Initialize Our Model with encoder weights from an existing pretask encoder in memory
 def initialize_model_for_training(presaved_encoder):
     model = KobeModel(num_classes = 10, encoder_features = 6, rm_dim = 800)
@@ -239,24 +237,29 @@ def initialize_model_for_training(presaved_encoder):
     
     return model
 
+
 # use this if you want Initialize Our Model with encoder weights from a file
 def initialize_model_for_training_file(presaved_encoder_file):
     presaved_encoder = PreTaskEncoder()
     presaved_encoder.load_state_dict(torch.load(presaved_encoder_file))
     presaved_encoder.eval()
 
-    
     return initialize_model_for_training(presaved_encoder)
+
 
 def RoadMapLoss(pred_rm, target_rm):
     bce_loss = nn.BCELoss()
 
     return bce_loss(pred_rm, target_rm)
 
+
 def total_joint_loss(yolo_loss, rm_loss, lambd):
     return yolo_loss + lambd * rm_loss
 
+
 ENCODER_HIDDEN = int(26718 / 2)
+
+
 class PreTaskEncoder(nn.Module):
     def __init__(self, n_features):
         super(PreTaskEncoder, self).__init__()
@@ -267,7 +270,7 @@ class PreTaskEncoder(nn.Module):
                                kernel_size=5,
                                )
         self.conv2 = nn.Conv2d(n_features,
-                               int(n_features/2),
+                               int(n_features / 2),
                                kernel_size=5)
     
     def forward(self, x):
@@ -283,6 +286,7 @@ class PreTaskEncoder(nn.Module):
         x = x.view(-1, ENCODER_HIDDEN)
         return x
 
+
 class ReshapeLayer2d(nn.Module):
     def __init__(self, channels, dim):
         super(ReshapeLayer2d, self).__init__()
@@ -291,7 +295,8 @@ class ReshapeLayer2d(nn.Module):
 
     def forward(self, x):
         return x.view(x.shape[0], self.channels, self.dim, self.dim)
-    
+
+
 class ReshapeLayer1d(nn.Module):
     def __init__(self, features):
         super(ReshapeLayer1d, self).__init__()
@@ -299,6 +304,7 @@ class ReshapeLayer1d(nn.Module):
 
     def forward(self, x):
         return x.view(x.shape[0], self.features)
+
 
 class YoloDecoder(nn.Module):
     
@@ -338,8 +344,8 @@ class YoloDecoder(nn.Module):
                 
         return prediction
 
-# from https://github.com/motokimura/yolo_v1_pytorch/
 
+# from https://github.com/motokimura/yolo_v1_pytorch/
 class YoloLoss(nn.Module):
     def __init__(self, feature_size=S, num_bboxes=B, num_classes=NUM_CLASSES, 
                  lambda_coord=l_coord, lambda_noobj=l_noobj):
@@ -358,7 +364,6 @@ class YoloLoss(nn.Module):
         self.C = num_classes
         self.lambda_coord = lambda_coord
         self.lambda_noobj = lambda_noobj
-
 
     def compute_iou(self, bbox1, bbox2):
         """ Compute the IoU (Intersection over Union) of two set of bboxes, each bbox format: [x1, y1, x2, y2].
@@ -491,6 +496,7 @@ class YoloLoss(nn.Module):
 
         return loss
 
+
 class RmDecoder(nn.Module):
     def __init__(self, rm_dim):
         super(RmDecoder, self).__init__()
@@ -517,6 +523,7 @@ class RmDecoder(nn.Module):
         x = self.model(x)
         x = x.squeeze(1)
         return x
+
 
 class KobeModel(nn.Module):
     
@@ -664,4 +671,3 @@ class KobeModel(nn.Module):
         else:
             loss = 0
         return outputs, loss
-
