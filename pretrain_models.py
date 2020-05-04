@@ -18,7 +18,7 @@ class PreTaskEncoder(nn.Module):
                                kernel_size=5,
                                )
         self.conv2 = nn.Conv2d(n_features,
-                               n_features,
+                               int(n_features/2),
                                kernel_size=5)
     
     def forward(self, x):
@@ -31,7 +31,7 @@ class PreTaskEncoder(nn.Module):
         x = F.max_pool2d(x, kernel_size=2)
 
         # return an array shape
-        x = x.view(-1, 26718)
+        x = x.view(-1, int(26718/2))
         return x
 
 
