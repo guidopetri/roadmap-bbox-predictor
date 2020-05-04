@@ -18,7 +18,7 @@ class PreTaskEncoder(nn.Module):
                                kernel_size=5,
                                )
         self.conv2 = nn.Conv2d(n_features,
-                               int(n_features/2),
+                               n_features,
                                kernel_size=5)
     
     def forward(self, x):
@@ -31,7 +31,7 @@ class PreTaskEncoder(nn.Module):
         x = F.max_pool2d(x, kernel_size=2)
 
         # return an array shape
-        x = x.view(-1, int(26718/2))
+        x = x.view(-1, 26718)
         return x
 
 
@@ -42,7 +42,7 @@ class TestNet(torch.nn.Module):
         super(TestNet, self).__init__()
         self.n_features = n_features
         self.encoder = PreTaskEncoder(n_features)
-        self.fc1 = nn.Linear(int(26718/2), 50)
+        self.fc1 = nn.Linear(26718, 50)
         self.fc2 = nn.Linear(50, 6)
     
     def forward(self, x):
@@ -166,9 +166,9 @@ if __name__ == '__main__':
     cnn = TestNet(6)
     train(1, cnn, trainloader)
 
-    torch.save(cnn.encoder.state_dict(), 'pretrain_model_1_epoch.pt')
+    torch.save(cnn.encoder.state_dict(), 'pretrain_model_big_1_epoch.pt')
     
-    assert cnn.__repr__() == 'TestNet(\n  (encoder): PreTaskEncoder(\n    (conv1): Conv2d(3, 6, kernel_size=(5, 5), stride=(1, 1))\n    (conv2): Conv2d(6, 3, kernel_size=(5, 5), stride=(1, 1))\n  )\n  (fc1): Linear(in_features=13359, out_features=50, bias=True)\n  (fc2): Linear(in_features=50, out_features=6, bias=True)\n)'
+    assert cnn.__repr__() == 'TestNet(\n  (encoder): PreTaskEncoder(\n    (conv1): Conv2d(3, 6, kernel_size=(5, 5), stride=(1, 1))\n    (conv2): Conv2d(6, 6, kernel_size=(5, 5), stride=(1, 1))\n  )\n  (fc1): Linear(in_features=26718, out_features=50, bias=True)\n  (fc2): Linear(in_features=50, out_features=6, bias=True)\n)'
 
     transform = torchvision.transforms.ToTensor()
 
