@@ -164,9 +164,9 @@ if __name__ == '__main__':
 
 
     cnn = TestNet(6)
-    train(1, cnn, trainloader)
+    train(2, cnn, trainloader)
 
-    torch.save(cnn.encoder.state_dict(), 'pretrain_model_1_epoch.pt')
+    torch.save(cnn.encoder.state_dict(), 'pretrain_model_2_epochs.pt')
     
     assert cnn.__repr__() == 'TestNet(\n  (encoder): PreTaskEncoder(\n    (conv1): Conv2d(3, 6, kernel_size=(5, 5), stride=(1, 1))\n    (conv2): Conv2d(6, 3, kernel_size=(5, 5), stride=(1, 1))\n  )\n  (fc1): Linear(in_features=13359, out_features=50, bias=True)\n  (fc2): Linear(in_features=50, out_features=6, bias=True)\n)'
 
