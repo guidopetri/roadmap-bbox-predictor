@@ -676,11 +676,16 @@ class KobeModel(nn.Module):
 
 def train_yolo(data_loader, kobe_model, kobe_optimizer, lambd=20):
     kobe_model.train()
-    train_loss = 0 
+    train_loss = 0
+
+    cuda = torch.cuda.is_available()
+    device = 'cuda:0' if cuda else 'cpu'
         
-    for sample, target, road_image, extra in trainloader:
+    for i, data in enumerate(data_loader):
+        sample, target, road_image = data
         sample = torch.stack(sample).to(device)
-        target = transform_target(target).to(device)
+        target_original = target
+        target = transform_target(target_original).to(device)
         road_image = torch.stack(road_image).float().to(device)
 
         kobe_optimizer.zero_grad()
@@ -690,7 +695,7 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, lambd=20):
          output_rm,
          rm_loss) = kobe_model(sample,
                                yolo_targets=target,
-                               m_targets = road_image)
+                               rm_targets=road_image)
         
         total_loss = total_joint_loss(yolo_loss, rm_loss, lambd)
         train_loss += (total_loss.item())
