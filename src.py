@@ -183,15 +183,8 @@ def transform_target(in_target):
         
         # CONVERT ALL THE BOUNDING BOXES for an individual sample at once
         
-        bbox = in_target[tgt_index]['bounding_box'].to(device)
-        translation = FloatTensor(bbox.shape[0], bbox.shape[1], bbox.shape[2])
-        translation[:, 0, :].fill_(-40)
-        translation[:, 1, :].fill_(40)
-
-        # translate to uppert left
-        box = bbox - translation
+        box = in_target[tgt_index]['bounding_box'].to(device)
         # reflect y
-        box[:, 1, :].mul_(-1)
 
         x_min = box[:, 0].min(dim = 1)[0]
         y_min = box[:, 1].min(dim = 1)[0]
@@ -616,10 +609,7 @@ class KobeModel(nn.Module):
         
 
             better_coordinates = FloatTensor(boxes_normalized.shape[0], 2, 4)
-            translation = FloatTensor(boxes_normalized.shape[0], 2, 4)
-            translation[:, 0, :].fill_(-40)
-            translation[:, 1, :].fill_(40)
-
+            
             center_x = (boxes_normalized[:, 0] + boxes_normalized[:, 2]) / 2 * WIDTH
             center_y = (boxes_normalized[:, 1] + boxes_normalized[:, 3]) / 2 * HEIGHT
             width = (boxes_normalized[:, 2] - boxes_normalized[:,0]) * WIDTH
@@ -645,10 +635,6 @@ class KobeModel(nn.Module):
             better_coordinates[:, 1, 1] = y2
             better_coordinates[:, 1, 2] = y3
             better_coordinates[:, 1, 3] = y4
-            
-            better_coordinates[:, 1, :].mul_(-1)
-            # shift back!
-            better_coordinates += translation
             
             boxes.append(better_coordinates)
         
