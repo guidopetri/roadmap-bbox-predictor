@@ -16,7 +16,10 @@ parser.add_argument('--batch_size', type=int, default=1)
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--no_pretrain', action='store_false')
 parser.add_argument('--verbose', action='store_true')
+parser.add_argument('--filename', type=str, default='kobe_model')
 opt = parser.parse_args()
+
+print(opt)
 
 cuda = torch.cuda.is_available()
 device = 'cuda:0' if cuda else 'cpu'
@@ -65,9 +68,9 @@ for epoch in range(n_epochs):
     train_yolo(trainloader, kobe_model, kobe_optimizer, opt.verbose)
 
     torch.save(kobe_model.state_dict(),
-               f'ke_model_w_pretrain2_high_lr_{epoch}_epochs.pt')
+               f'{opt.filename}_{epoch}_epochs.pt')
     try:
         # keep the last 3 epochs and remove any previous ones
-        os.remove(f'ke_model_w_pretrain2_high_lr_{epoch - 3}_epochs.pt')
+        os.remove(f'{opt.filename}_{epoch - 3}_epochs.pt')
     except FileNotFoundError:
         pass
