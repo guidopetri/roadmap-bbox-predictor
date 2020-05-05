@@ -674,12 +674,14 @@ class KobeModel(nn.Module):
         return outputs, loss
 
 
-def train_yolo(data_loader, kobe_model, kobe_optimizer, lambd=20):
+def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, lambd=20):
     kobe_model.train()
     train_loss = 0
 
     cuda = torch.cuda.is_available()
     device = 'cuda:0' if cuda else 'cpu'
+
+    train_size = len(data_loader.dataset)
         
     for i, data in enumerate(data_loader):
         sample, target, road_image = data
@@ -704,5 +706,10 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, lambd=20):
         kobe_optimizer.step()
         
         torch.cuda.empty_cache()
+
+        if verbose and (i % 100 == 0):
+            print(f'[{i * len(data):05d}/{train_size}'
+                  f' ({100 * i / len(data_loader):.0f}%)]'
+                  f'\tLoss: {train_loss:.6f}')
         
     print("TRAIN LOSS: {}".format(train_loss))
