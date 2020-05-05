@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torchvision
 
 # import your model class
-# import ...
+from src import KobeModel
 
 # Put your transform function here, we will use it for our dataloader
 def get_transform(): 
@@ -35,7 +35,7 @@ class ModelLoader():
     team_member = ['Nabeel Sarwar', 'Esteban Navarro Garaiz', 'Guido Petri']
     contact_email = 'gp1655@nyu.edu'
 
-    def __init__(self, model_file='kobe_model_no_pretrain_3_epochs.pt'):
+    def __init__(self, model_file='kobe_model_w_pretrain2_9_epochs.pt'):
         # You should 
         #       1. create the model object
         #       2. load your state_dict
@@ -61,7 +61,7 @@ class ModelLoader():
         samples.to(self.device)
         boxes, _ = self.model.get_bounding_boxes(samples)
 
-        return boxes[0].view(1, -1, 2, 4).cuda()
+        return boxes
 
     def get_binary_road_map(self, samples):
         # samples is a cuda tensor with size [batch_size, 6, 3, 256, 306]
@@ -70,4 +70,4 @@ class ModelLoader():
         samples.to(self.device)
         road_map, _ = self.model.get_road_map(samples)
         
-        return road_map.view(1, 800, 800).cuda()
+        return road_map
