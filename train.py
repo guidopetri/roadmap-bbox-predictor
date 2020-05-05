@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--n_epochs', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=1)
 parser.add_argument('--lr', type=float, default=1e-4)
-parser.add_argument('--pretrain', action='store_false')
+parser.add_argument('--no_pretrain', action='store_false')
 parser.add_argument('--verbose', action='store_true')
 opt = parser.parse_args()
 
