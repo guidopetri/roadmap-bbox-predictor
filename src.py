@@ -65,7 +65,8 @@ def target_encode(boxes, labels):
             target[j, i, 5*B + label] = 1.0
 
         return target
-    
+
+   
 def pred_decode(pred_tensor, conf_thresh=0.1, prob_thresh=0.1):
         """ Decode tensor into box coordinates, class labels, and probs_detected.
         Args:
@@ -671,3 +672,32 @@ class KobeModel(nn.Module):
         else:
             loss = 0
         return outputs, loss
+
+
+def train_yolo(data_loader, kobe_model, kobe_optimizer, lambd=20):
+    kobe_model.train()
+    train_loss = 0 
+        
+    for sample, target, road_image, extra in trainloader:
+        sample = torch.stack(sample).to(device)
+        target = transform_target(target).to(device)
+        road_image = torch.stack(road_image).float().to(device)
+
+        kobe_optimizer.zero_grad()
+
+        (output_yolo,
+         yolo_loss,
+         output_rm,
+         rm_loss) = kobe_model(sample,
+                               yolo_targets=target,
+                               m_targets = road_image)
+        
+        total_loss = total_joint_loss(yolo_loss, rm_loss, lambd)
+        train_loss += (total_loss.item())
+        total_loss.backward()
+
+        kobe_optimizer.step()
+        
+        torch.cuda.empty_cache()
+        
+    print("TRAIN LOSS: {}".format(train_loss))
