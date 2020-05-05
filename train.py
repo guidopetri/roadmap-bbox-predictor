@@ -1,0 +1,59 @@
+#! /usr/bin/env python3
+
+import os
+from src import initialize_model_for_training_file, train_yolo
+import torch
+import torchvision
+from helper import collate_fn
+from data_helper import LabeledDataset
+import numpy as np
+
+
+cuda = torch.cuda.is_available()
+device = 'cuda:0' if cuda else 'cpu'
+
+# kobe_model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
+kobe_model = initialize_model_for_training_file('pretrain_model_2_epochs.pt')
+kobe_model.to(device)
+
+lr = 0.0003
+b1 = 0.9
+b2 = 0.999
+
+kobe_optimizer = torch.optim.Adam(kobe_model.parameters(),
+                                  lr=lr,
+                                  betas=(b1, b2))
+
+n_epochs = 10
+
+image_folder = 'data'
+annotation_csv = 'data/annotation.csv'
+
+transform = torchvision.transforms.ToTensor()
+
+labeled_scene_index = np.arange(106, 134)
+labeled_trainset = LabeledDataset(image_folder=image_folder,
+                                  annotation_file=annotation_csv,
+                                  scene_index=labeled_scene_index,
+                                  transform=transform,
+                                  extra_info=False,
+                                  )
+trainloader = torch.utils.data.DataLoader(labeled_trainset,
+                                          batch_size=1,
+                                          shuffle=True,
+                                          num_workers=0,
+                                          collate_fn=collate_fn,
+                                          )
+
+
+for epoch in range(n_epochs):
+    print("EPOCH: {}".format(epoch))
+    train_yolo(trainloader, kobe_model, kobe_optimizer)
+
+    torch.save(kobe_model.state_dict(),
+               f'ke_model_w_pretrain2_high_lr_{epoch}_epochs.pt')
+    try:
+        os.remove(f'ke_model_w_pretrain2_high_lr_{epoch - 3}_epochs.pt')
+        os.remove(f'ke_model_w_pretrain2_high_lr_{epoch - 4}_epochs.pt')
+    except FileNotFoundError:
+        pass
