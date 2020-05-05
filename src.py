@@ -241,7 +241,7 @@ def initialize_model_for_training(presaved_encoder):
 
 # use this if you want Initialize Our Model with encoder weights from a file
 def initialize_model_for_training_file(presaved_encoder_file):
-    presaved_encoder = PreTaskEncoder()
+    presaved_encoder = PreTaskEncoder(6)
     presaved_encoder.load_state_dict(torch.load(presaved_encoder_file))
     presaved_encoder.eval()
 
