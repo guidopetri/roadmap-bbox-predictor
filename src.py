@@ -21,7 +21,6 @@ l_coord = 5
 l_noobj = 0.5
 
 cuda = torch.cuda.is_available()
-#cuda = False
 
 device = 'cuda:0' if cuda else 'cpu'
 
@@ -515,7 +514,6 @@ class RmDecoder(nn.Module):
             nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 2),
             nn.ReLU(),
             nn.Conv2d(2, 1, kernel_size = 3, stride = 1),
-            # Sigmoid is final layer in Yolo v1
             nn.Sigmoid()
         )
         
@@ -709,7 +707,7 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, lambd=20):
 
         if verbose and (i % 100 == 0):
             print(f'[{i * len(data):05d}/{train_size}'
-                  f' ({100 * i / len(data_loader):.0f}%)]'
+                  f' ({100 * i / len(data_loader):03.0f}%)]'
                   f'\tLoss: {train_loss:.6f}')
         
     print("TRAIN LOSS: {}".format(train_loss))
