@@ -15,7 +15,7 @@ HEIGHT = 2 * 40
 
 NUM_CLASSES = 10
 
-S = 7
+S = 16
 B = 2
 l_coord = 5
 l_noobj = 0.5
@@ -692,9 +692,6 @@ class KobeModel(nn.Module):
 def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, lambd=20):
     kobe_model.train()
     train_loss = 0
-
-    cuda = torch.cuda.is_available()
-    device = 'cuda:0' if cuda else 'cpu'
 
     train_size = len(data_loader.dataset)
         
