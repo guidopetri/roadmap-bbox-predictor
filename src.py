@@ -221,7 +221,7 @@ def transform_target(in_target):
 
 
 # works by side effects
-def load_pretask_weight_from_model(model, presaved_encoder):
+def load_encoder_weights(model, presaved_encoder):
     model.encoder.load_state_dict(presaved_encoder.state_dict())
     
     for param in model.encoder.parameters():
@@ -248,20 +248,20 @@ def initialize_model_from_file(from_file):
 
 
 # use this if you want Initialize Our Model with encoder weights from an existing pretask encoder in memory
-def initialize_model_for_training(presaved_encoder):
+def initialize_model_from_encoder(presaved_encoder):
     model = KobeModel(num_classes = 10, encoder_features = 6, rm_dim = 800)
-    load_pretask_weight_from_model(model, presaved_encoder)
+    load_encoder_weights(model, presaved_encoder)
     
     return model
 
 
 # use this if you want Initialize Our Model with encoder weights from a file
-def initialize_model_for_training_file(presaved_encoder_file):
+def load_model_from_encoder(presaved_encoder_file):
     presaved_encoder = PreTaskEncoder(6)
     presaved_encoder.load_state_dict(torch.load(presaved_encoder_file))
     presaved_encoder.eval()
 
-    return initialize_model_for_training(presaved_encoder)
+    return initialize_model_from_encoder(presaved_encoder)
 
 
 def RoadMapLoss(pred_rm, target_rm):
