@@ -24,12 +24,12 @@ print(opt)
 cuda = torch.cuda.is_available()
 device = 'cuda:0' if cuda else 'cpu'
 
-if opt.pretrain:
-    kobe_model = model_init('pretrain_model_2_epochs.pt')
-else:
+if opt.no_pretrain:
     from src import KobeModel
 
     kobe_model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
+else:
+    kobe_model = model_init('pretrain_model_2_epochs.pt')
 
 kobe_model.to(device)
 
