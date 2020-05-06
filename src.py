@@ -543,13 +543,12 @@ class RmDecoder(nn.Module):
 
 class KobeModel(nn.Module):
     
-    def __init__(self, num_classes, encoder_features, rm_dim):
+    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1):
         super(KobeModel, self).__init__()
         
         
         self.num_classes = num_classes
         self.encoder = PreTaskEncoder(encoder_features)
-        
         
         #self.shared_decoder = nn.Sequential()
         
@@ -560,6 +559,8 @@ class KobeModel(nn.Module):
         
         self.rm_decoder = RmDecoder(rm_dim)
         
+        self.prob_thresh = prob_thresh
+
     def encode(self, x):
         
         # get all the representations laid out like this
@@ -603,7 +604,8 @@ class KobeModel(nn.Module):
         
         for output in outputs:
             # Get detected boxes_detected, labels, confidences, class-scores.
-            boxes_normalized_all, class_labels_all, confidences_all, class_scores_all = pred_decode(output)
+            boxes_normalized_all, class_labels_all, confidences_all, class_scores_all = pred_decode(output,
+                                               prob_thresh=self.prob_thresh)
             if boxes_normalized_all.size(0) == 0:
                 continue
 
