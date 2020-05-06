@@ -89,7 +89,7 @@ dataloader_task2 = torch.utils.data.DataLoader(
     )
 
 model_loader = ModelLoader(model_file=opt.filename)
-model_loader.eval()
+model_loader.model.eval()
 
 print(model_loader)
 
