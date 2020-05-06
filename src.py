@@ -689,7 +689,7 @@ class KobeModel(nn.Module):
         return outputs, loss
 
 
-def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, lambd=20):
+def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, prince, lambd=20):
     kobe_model.train()
     train_loss = 0
 
@@ -717,7 +717,8 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, lambd=20):
 
         kobe_optimizer.step()
         
-        torch.cuda.empty_cache()
+        if not prince:
+            torch.cuda.empty_cache()
 
         if verbose and (i % 100 == 0):
             print(f'[{i * len(data):05d}/{train_size}'

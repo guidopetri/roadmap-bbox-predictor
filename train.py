@@ -18,6 +18,7 @@ parser.add_argument('--batch_size', type=int, default=1)
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--no_pretrain', action='store_true')
 parser.add_argument('--verbose', action='store_true')
+parser.add_argument('--prince', action='store_true')
 parser.add_argument('--filename', type=str, default='kobe_model')
 parser.add_argument('--continue_training', action='store_true')
 parser.add_argument('--continue_from', type=str)
@@ -83,7 +84,12 @@ trainloader = torch.utils.data.DataLoader(labeled_trainset,
 
 for epoch in range(n_epochs):
     print("EPOCH: {}".format(epoch))
-    train_yolo(trainloader, kobe_model, kobe_optimizer, opt.verbose)
+    train_yolo(trainloader,
+               kobe_model,
+               kobe_optimizer,
+               opt.verbose,
+               opt.prince,
+               )
 
     torch.save(kobe_model.state_dict(),
                f'{opt.filename}_{epoch}_epochs.pt')
