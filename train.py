@@ -21,6 +21,8 @@ parser.add_argument('--verbose', action='store_true')
 parser.add_argument('--filename', type=str, default='kobe_model')
 parser.add_argument('--continue_training', action='store_true')
 parser.add_argument('--continue_from', type=str)
+# need to fix this for preloaded encoder too, and continuing training
+parser.add_argument('--encoder_feature_size', type=int, default=6)
 opt = parser.parse_args()
 
 print(opt)
@@ -37,7 +39,10 @@ device = 'cuda:0' if cuda else 'cpu'
 if opt.no_pretrain:
     from src import KobeModel
 
-    kobe_model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
+    kobe_model = KobeModel(num_classes=10,
+                           encoder_features=opt.encoder_feature_size,
+                           rm_dim=800,
+                           )
 else:
     kobe_model = model_from_encoder('pretrain_model_2_epochs.pt')
 
