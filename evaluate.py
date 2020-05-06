@@ -89,6 +89,9 @@ dataloader_task2 = torch.utils.data.DataLoader(
     )
 
 model_loader = ModelLoader(model_file=opt.filename)
+model_loader.eval()
+
+print(model_loader)
 
 total = 0
 total_ats_bounding_boxes = 0
