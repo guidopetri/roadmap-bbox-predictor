@@ -230,6 +230,23 @@ def load_pretask_weight_from_model(model, presaved_encoder):
     return model
 
 
+def load_weights_from_file(model, from_file):
+    model.load_state_dict(torch.load(from_file))
+    model.train()
+
+    for param in model.encoder.parameters():
+        param.requires_grad = False
+
+    return model
+
+
+def initialize_model_from_file(from_file):
+    model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
+    load_weights_from_file(model, from_file)
+
+    return model
+
+
 # use this if you want Initialize Our Model with encoder weights from an existing pretask encoder in memory
 def initialize_model_for_training(presaved_encoder):
     model = KobeModel(num_classes = 10, encoder_features = 6, rm_dim = 800)
