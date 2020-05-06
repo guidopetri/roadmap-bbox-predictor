@@ -106,6 +106,7 @@ with torch.no_grad():
 
         if opt.verbose:
             print(f'{i} - Bounding Box Score: {ats_bounding_boxes:.4}')
+            print(f'{i} - IOU_max: {iou_max}')
 
     print('Finished testing bounding box')
 
