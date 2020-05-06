@@ -605,7 +605,7 @@ class KobeModel(nn.Module):
             # Get detected boxes_detected, labels, confidences, class-scores.
             boxes_normalized_all, class_labels_all, confidences_all, class_scores_all = pred_decode(output)
             if boxes_normalized_all.size(0) == 0:
-                return ()
+                continue
 
             # Apply non maximum supression for boxes of each class.
             boxes_normalized, class_labels, probs = [], [], []
