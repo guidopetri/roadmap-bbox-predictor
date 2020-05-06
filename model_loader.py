@@ -35,16 +35,18 @@ class ModelLoader():
     team_member = ['Nabeel Sarwar', 'Esteban Navarro Garaiz', 'Guido Petri']
     contact_email = 'gp1655@nyu.edu'
 
-    def __init__(self, model_file='kobe_model_w_pretrain2_9_epochs.pt'):
+    def __init__(self, model_file='kobe_model_w_pretrain2_9_epochs.pt', prob_thresh=0.1):
         # You should 
         #       1. create the model object
         #       2. load your state_dict
         #       3. call cuda()
         # self.model = ...
         
-        self.model = KobeModel(num_classes = 10,
-                               encoder_features = 6,
-                               rm_dim = 800)
+        self.model = KobeModel(num_classes=10,
+                               encoder_features=6,
+                               rm_dim=800,
+                               prob_thresh=prob_thresh,
+                               )
         
         self.model.load_state_dict(torch.load(model_file))
         self.model.eval()
