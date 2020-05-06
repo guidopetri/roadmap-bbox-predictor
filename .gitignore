@@ -7,3 +7,6 @@ data/
 *.pt
 *.log
 src_2.ipynb
+*.pt.bak
+*.out
+
