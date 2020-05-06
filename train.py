@@ -1,7 +1,9 @@
 #! /usr/bin/env python3
 
 import os
-from src import initialize_model_for_training_file as model_init, train_yolo
+from src import initialize_model_for_training_file as model_init
+from src import initialize_model_from_file as model_from_file
+from src import train_yolo
 import torch
 import torchvision
 from helper import collate_fn
@@ -17,9 +19,17 @@ parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--no_pretrain', action='store_true')
 parser.add_argument('--verbose', action='store_true')
 parser.add_argument('--filename', type=str, default='kobe_model')
+parser.add_argument('--continue_training', action='store_true')
+parser.add_argument('--continue_from', type=str)
 opt = parser.parse_args()
 
 print(opt)
+
+if opt.continue_training:
+    if not os.path.exists(opt.continue_from):
+        print(f'Cannot continue training from {opt.continue_from}. '
+              'Please set the --continue_from flag appropriately.')
+        raise FileNotFoundError('--continue_from flag not set correctly')
 
 cuda = torch.cuda.is_available()
 device = 'cuda:0' if cuda else 'cpu'
@@ -30,6 +40,9 @@ if opt.no_pretrain:
     kobe_model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
 else:
     kobe_model = model_init('pretrain_model_2_epochs.pt')
+
+if opt.continue_training:
+    kobe_model = model_from_file(opt.continue_from)
 
 kobe_model.to(device)
 
