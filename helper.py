@@ -69,7 +69,7 @@ def compute_ats_bounding_boxes(boxes1, boxes2):
 
     average_threat_score = total_threat_score / total_weight
     
-    return average_threat_score
+    return average_threat_score, iou_max
 
 def compute_ts_road_map(road_map1, road_map2):
     tp = (road_map1 * road_map2).sum()
