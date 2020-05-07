@@ -242,28 +242,28 @@ def load_weights_from_file(model, from_file):
     return model
 
 
-def initialize_model_from_file(from_file):
-    model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800)
+def initialize_model_from_file(from_file, batch_norm = False):
+    model = KobeModel(num_classes=10, encoder_features=6, rm_dim=800, batch_norm = batch_norm)
     load_weights_from_file(model, from_file)
 
     return model
 
 
 # use this if you want Initialize Our Model with encoder weights from an existing pretask encoder in memory
-def initialize_model_from_encoder(presaved_encoder):
-    model = KobeModel(num_classes = 10, encoder_features = 6, rm_dim = 800)
+def initialize_model_from_encoder(presaved_encoder, batch_norm):
+    model = KobeModel(num_classes = 10, encoder_features = 6, rm_dim = 800, batch_norm = batch_norm)
     load_encoder_weights(model, presaved_encoder)
     
     return model
 
 
 # use this if you want Initialize Our Model with encoder weights from a file
-def load_model_from_encoder(presaved_encoder_file):
+def load_model_from_encoder(presaved_encoder_file, batch_norm):
     presaved_encoder = PreTaskEncoder(6)
     presaved_encoder.load_state_dict(torch.load(presaved_encoder_file))
     presaved_encoder.eval()
 
-    return initialize_model_from_encoder(presaved_encoder)
+    return initialize_model_from_encoder(presaved_encoder, batch_norm)
 
 
 def RoadMapLoss(pred_rm, target_rm):
