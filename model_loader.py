@@ -46,6 +46,7 @@ class ModelLoader():
                                encoder_features=6,
                                rm_dim=800,
                                prob_thresh=prob_thresh,
+                               conf_thresh=conf_thresh,
                                )
         
         self.model.load_state_dict(torch.load(model_file))
