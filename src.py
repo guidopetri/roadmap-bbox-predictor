@@ -410,7 +410,7 @@ class YoloDecoder(nn.Module):
                     nn.Sigmoid()
                     )
         else:
-            nn.Sequential(
+            self.m = nn.Sequential(
                     nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
                     nn.BatchNorm1d(2 * 15 * 15),
                     nn.ReLU(),
