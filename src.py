@@ -545,7 +545,7 @@ class RmDecoder(nn.Module):
 
 class KobeModel(nn.Module):
     
-    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1):
+    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.35):
         super(KobeModel, self).__init__()
         
         
@@ -563,6 +563,7 @@ class KobeModel(nn.Module):
         
         self.prob_thresh = prob_thresh
         self.conf_thresh = conf_thresh
+        self.nms_thresh = nms_thresh
 
     def encode(self, x):
         
@@ -627,7 +628,7 @@ class KobeModel(nn.Module):
                 confidences_masked = confidences_all[mask]
                 class_scores_masked = class_scores_all[mask]
 
-                ids = nms(boxes_normalized_masked, confidences_masked)
+                ids = nms(boxes_normalized_masked, confidences_masked, nms_thresh=self.nms_thresh)
 
                 boxes_normalized.append(boxes_normalized_masked[ids])
                 class_labels.append(class_labels_maked[ids])
