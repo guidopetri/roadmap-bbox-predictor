@@ -78,11 +78,12 @@ labeled_trainset = LabeledDataset(image_folder=image_folder,
                                   )
 
 labeled_valset = LabeledDataset(image_folder=image_folder,
-                                  annotation_file=annotation_csv,
-                                  scene_index=labeled_scene_index_val,
-                                  transform=transform,
-                                  extra_info=False,
-                                  )
+                                annotation_file=annotation_csv,
+                                scene_index=labeled_scene_index_val,
+                                transform=transform,
+                                extra_info=False,
+                                )
+
 trainloader = torch.utils.data.DataLoader(labeled_trainset,
                                           batch_size=opt.batch_size,
                                           shuffle=True,
@@ -91,16 +92,15 @@ trainloader = torch.utils.data.DataLoader(labeled_trainset,
                                           )
 
 valloader = torch.utils.data.DataLoader(labeled_valset,
-                                          batch_size=opt.batch_size,
-                                          shuffle=True,
-                                          num_workers=0,
-                                          collate_fn=collate_fn,
-                                          )
-
-
+                                        batch_size=opt.batch_size,
+                                        shuffle=True,
+                                        num_workers=0,
+                                        collate_fn=collate_fn,
+                                        )
 
 epochs_val_increasing = 0
 val_loss_previous = 999999
+
 for epoch in range(n_epochs):
     print("EPOCH: {}".format(epoch))
     train_loss, val_loss = train_yolo(trainloader,
@@ -111,18 +111,20 @@ for epoch in range(n_epochs):
                                       opt.prince,
                                       )
 
-    if val_loss > val_loss_previous and val_loss > train_loss:
+    # re-weigh val loss so that we can compare in the same scale as train loss
+    if val_loss > val_loss_previous and ((20 * val_loss / 8) > train_loss):
         epochs_val_increasing += 1
         val_loss_previous = val_loss
     else:
         epochs_val_increasing = 0
-        val_loss_prevoius = val_loss
-
-    if epochs_val_increasing >= 3 and epochs > 3:
-        break
+        val_loss_previous = val_loss
 
     torch.save(kobe_model.state_dict(),
                f'{opt.filename}_{epoch}_epochs.pt')
+
+    if epochs_val_increasing >= 3 and epoch > 3:
+        # break before we remove the best one
+        break
     try:
         # keep the last 3 epochs and remove any previous ones
         os.remove(f'{opt.filename}_{epoch - 3}_epochs.pt')
