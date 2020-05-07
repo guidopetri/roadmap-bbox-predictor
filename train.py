@@ -67,10 +67,19 @@ annotation_csv = 'data/annotation.csv'
 
 transform = torchvision.transforms.ToTensor()
 
-labeled_scene_index = np.arange(106, 134)
+labeled_scene_index_train = np.arange(106, 126)
+labeled_scene_index_val= np.arange(126, 134)
+
 labeled_trainset = LabeledDataset(image_folder=image_folder,
                                   annotation_file=annotation_csv,
-                                  scene_index=labeled_scene_index,
+                                  scene_index=labeled_scene_index_train,
+                                  transform=transform,
+                                  extra_info=False,
+                                  )
+
+labeled_valset = LabeledDataset(image_folder=image_folder,
+                                  annotation_file=annotation_csv,
+                                  scene_index=labeled_scene_index_val,
                                   transform=transform,
                                   extra_info=False,
                                   )
@@ -81,15 +90,36 @@ trainloader = torch.utils.data.DataLoader(labeled_trainset,
                                           collate_fn=collate_fn,
                                           )
 
+valloader = torch.utils.data.DataLoader(labeled_valset,
+                                          batch_size=opt.batch_size,
+                                          shuffle=True,
+                                          num_workers=0,
+                                          collate_fn=collate_fn,
+                                          )
 
+
+
+epochs_val_increasing = 0
+val_loss_previous = 999999
 for epoch in range(n_epochs):
     print("EPOCH: {}".format(epoch))
-    train_yolo(trainloader,
-               kobe_model,
-               kobe_optimizer,
-               opt.verbose,
-               opt.prince,
-               )
+    train_loss, val_loss = train_yolo(trainloader,
+                                      valloader,
+                                      kobe_model,
+                                      kobe_optimizer,
+                                      opt.verbose,
+                                      opt.prince,
+                                      )
+
+    if val_loss > val_loss_previous and val_loss > train_loss:
+        epochs_val_increasing += 1
+        val_loss_previous = val_loss
+    else:
+        epochs_val_increasing = 0
+        val_loss_prevoius = val_loss
+
+    if epochs_val_increasing >= 3 and epochs > 3:
+        break
 
     torch.save(kobe_model.state_dict(),
                f'{opt.filename}_{epoch}_epochs.pt')
