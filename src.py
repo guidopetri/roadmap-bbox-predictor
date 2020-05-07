@@ -781,6 +781,9 @@ class KobeModel(nn.Module):
             better_coordinates[:, 1, :].mul_(-1)
             # shift back!
             better_coordinates += translation
+
+            # reorder corners so it's clockwise from top left
+            better_coordinates = better_coordinates[:, :, [0, 2, 3, 1]]
             
             boxes.append(better_coordinates)
         
