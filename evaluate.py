@@ -52,6 +52,7 @@ parser.add_argument('--filename', type=str, default='kobe_model_w_pretrain2_9_ep
 parser.add_argument('--verbose', action='store_true')
 parser.add_argument('--prob_thresh', type=float, default=0.1)
 parser.add_argument('--conf_thresh', type=float, default=0.1)
+parser.add_argument('--nms_thresh', type=float, default=0.35)
 opt = parser.parse_args()
 
 print(f'Args: {opt}')
@@ -93,6 +94,7 @@ dataloader_task2 = torch.utils.data.DataLoader(
 model_loader = ModelLoader(model_file=opt.filename,
                            prob_thresh=opt.prob_thresh,
                            conf_thresh=opt.conf_thresh,
+                           nms_thresh=opt.nms_thresh,
                            )
 model_loader.model.eval()
 
