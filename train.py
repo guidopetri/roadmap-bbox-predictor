@@ -22,6 +22,7 @@ parser.add_argument('--prince', action='store_true')
 parser.add_argument('--filename', type=str, default='kobe_model')
 parser.add_argument('--continue_training', action='store_true')
 parser.add_argument('--continue_from', type=str)
+parser.add_argument('--batch_norm', action='store_false')
 # need to fix this for preloaded encoder too, and continuing training
 parser.add_argument('--encoder_feature_size', type=int, default=6)
 opt = parser.parse_args()
@@ -37,18 +38,22 @@ if opt.continue_training:
 cuda = torch.cuda.is_available()
 device = 'cuda:0' if cuda else 'cpu'
 
+
+batch_norm = opt.batch_norm
+
 if opt.no_pretrain:
     from src import KobeModel
 
     kobe_model = KobeModel(num_classes=10,
                            encoder_features=opt.encoder_feature_size,
                            rm_dim=800,
+                           batch_norm = batch_norm
                            )
 else:
-    kobe_model = model_from_encoder('pretrain_model_2_epochs.pt')
+    kobe_model = model_from_encoder('pretrain_model_2_epochs.pt', batch_norm = batch_norm)
 
 if opt.continue_training:
-    kobe_model = model_from_file(opt.continue_from)
+    kobe_model = model_from_file(opt.continue_from, batch_norm = batch_norm)
 
 kobe_model.to(device)
 
