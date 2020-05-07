@@ -645,7 +645,7 @@ class RmDecoder(nn.Module):
 
 class KobeModel(nn.Module):
     
-    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.35, batch_norm=False):
+    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.4, batch_norm=False):
 
         super(KobeModel, self).__init__()
         
