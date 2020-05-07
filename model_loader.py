@@ -35,7 +35,8 @@ class ModelLoader():
     team_member = ['Nabeel Sarwar', 'Esteban Navarro Garaiz', 'Guido Petri']
     contact_email = 'gp1655@nyu.edu'
 
-    def __init__(self, model_file='kobe_model_w_pretrain2_9_epochs.pt', prob_thresh=0.1):
+    def __init__(self, model_file='kobe_model_w_pretrain2_9_epochs.pt', prob_thresh=0.1, batch_norm=False):
+
         # You should 
         #       1. create the model object
         #       2. load your state_dict
@@ -48,6 +49,7 @@ class ModelLoader():
                                prob_thresh=prob_thresh,
                                conf_thresh=conf_thresh,
                                nms_thresh=nms_thresh,
+                               batch_norm=batch_norm,
                                )
         
         self.model.load_state_dict(torch.load(model_file))
