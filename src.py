@@ -595,8 +595,8 @@ class YoloLoss(nn.Module):
         return loss
 
 
-class RmDecoder(nn.Module, batch_norm = False):
-    def __init__(self, rm_dim):
+class RmDecoder(nn.Module):
+    def __init__(self, rm_dim, batch_norm = False):
         super(RmDecoder, self).__init__()
         
         self.rm_dim = 800
