@@ -22,7 +22,7 @@ parser.add_argument('--prince', action='store_true')
 parser.add_argument('--filename', type=str, default='kobe_model')
 parser.add_argument('--continue_training', action='store_true')
 parser.add_argument('--continue_from', type=str)
-parser.add_argument('--batch_norm', action='store_false')
+parser.add_argument('--batch_norm', action='store_true')
 # need to fix this for preloaded encoder too, and continuing training
 parser.add_argument('--encoder_feature_size', type=int, default=6)
 opt = parser.parse_args()
