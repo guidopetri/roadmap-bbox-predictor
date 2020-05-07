@@ -698,6 +698,8 @@ class KobeModel(nn.Module):
     # for easy use for competition
     # in competition, encoding is None
     def get_bounding_boxes(self, x, encoding = None, targets = None):
+        from torchvision.ops import nms as torch_nms
+
         if encoding is None:
             encoding = self.encode(x)
         
@@ -734,7 +736,7 @@ class KobeModel(nn.Module):
                 confidences_masked = confidences_all[mask]
                 class_scores_masked = class_scores_all[mask]
 
-                ids = nms(boxes_normalized_masked, confidences_masked, nms_thresh=self.nms_thresh)
+                ids = torch_nms(boxes_normalized_masked, confidences_masked, self.nms_thresh)
 
                 boxes_normalized.append(boxes_normalized_masked[ids])
                 class_labels.append(class_labels_maked[ids])
