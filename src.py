@@ -764,7 +764,7 @@ def train_yolo(train_data_loader, val_data_loader, kobe_model, kobe_optimizer, v
             torch.cuda.empty_cache()
 
                 
-    print("TRAIN LOSS: {}".format(train_loss))
+    print("VAL LOSS: {}".format(val_loss))
 
 
     return train_loss, val_loss
