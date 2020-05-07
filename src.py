@@ -704,6 +704,7 @@ def train_yolo(train_data_loader, val_data_loader, kobe_model, kobe_optimizer, v
     val_loss = 0
 
     train_size = len(train_data_loader.dataset)
+    val_size = len(val_data_loader.dataset)
 
         
     for i, data in enumerate(train_data_loader):
@@ -734,7 +735,7 @@ def train_yolo(train_data_loader, val_data_loader, kobe_model, kobe_optimizer, v
 
         if verbose and (i % 100 == 0):
             print(f'[{i * len(data):05d}/{train_size}'
-                  f' ({100 * i / len(data_loader):03.0f}%)]'
+                  f' ({100 * i / len(train_data_loader):03.0f}%)]'
                   f'\tLoss: {train_loss:.6f}')
         
     print("TRAIN LOSS: {}".format(train_loss))
@@ -762,6 +763,11 @@ def train_yolo(train_data_loader, val_data_loader, kobe_model, kobe_optimizer, v
         
         if not prince:
             torch.cuda.empty_cache()
+
+        if verbose and (i % 100 == 0):
+            print(f'[{i * len(data):05d}/{val_size}'
+                  f' ({100 * i / len(val_data_loader):03.0f}%)]'
+                  f'\tLoss: {val_loss:.6f}')
 
                 
     print("VAL LOSS: {}".format(val_loss))
