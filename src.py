@@ -803,13 +803,15 @@ class KobeModel(nn.Module):
         return outputs, loss
 
 
-def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, prince, lambd=20):
+def train_yolo(train_data_loader, val_data_loader, kobe_model, kobe_optimizer, verbose, prince, lambd=20):
     kobe_model.train()
     train_loss = 0
+    val_loss = 0
 
-    train_size = len(data_loader.dataset)
+    train_size = len(train_data_loader.dataset)
+
         
-    for i, data in enumerate(data_loader):
+    for i, data in enumerate(train_data_loader):
         sample, target, road_image = data
         sample = torch.stack(sample).to(device)
         target_original = target
@@ -827,6 +829,7 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, prince, lambd=2
         
         total_loss = total_joint_loss(yolo_loss, rm_loss, lambd)
         train_loss += (total_loss.item())
+
         total_loss.backward()
 
         kobe_optimizer.step()
@@ -840,3 +843,33 @@ def train_yolo(data_loader, kobe_model, kobe_optimizer, verbose, prince, lambd=2
                   f'\tLoss: {train_loss:.6f}')
         
     print("TRAIN LOSS: {}".format(train_loss))
+
+
+    for i, data in enumerate(val_data_loader):
+        sample, target, road_image = data
+        sample = torch.stack(sample).to(device)
+        target_original = target
+        target = transform_target(target_original).to(device)
+        road_image = torch.stack(road_image).float().to(device)
+
+
+        with torch.no_grad():
+            (output_yolo,
+            yolo_loss,
+            output_rm,
+            rm_loss) = kobe_model(sample,
+                                  yolo_targets=target,
+                                  rm_targets=road_image)
+        
+        total_loss = total_joint_loss(yolo_loss, rm_loss, lambd)
+        val_loss += (total_loss.item())
+
+        
+        if not prince:
+            torch.cuda.empty_cache()
+
+                
+    print("TRAIN LOSS: {}".format(train_loss))
+
+
+    return train_loss, val_loss
