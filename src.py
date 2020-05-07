@@ -613,6 +613,7 @@ class KobeModel(nn.Module):
                                                conf_thresh=self.conf_thresh,
                                                )
             if boxes_normalized_all.size(0) == 0:
+                boxes.append(FloatTensor(outputs.shape[0], 2, 4))
                 continue
 
             # Apply non maximum supression for boxes of each class.
