@@ -53,7 +53,7 @@ parser.add_argument('--verbose', action='store_true')
 parser.add_argument('--prob_thresh', type=float, default=0.1)
 parser.add_argument('--conf_thresh', type=float, default=0.1)
 parser.add_argument('--nms_thresh', type=float, default=0.35)
-parser.add_argument('--batch_norm', action = 'store_false')
+parser.add_argument('--batch_norm', action = 'store_true')
 opt = parser.parse_args()
 
 print(f'Args: {opt}')
