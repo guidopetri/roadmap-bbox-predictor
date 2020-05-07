@@ -94,7 +94,7 @@ def pred_decode(pred_tensor, conf_thresh=0.1, prob_thresh=0.1):
                 for b in range(B):
                     conf = pred_tensor[j, i, 5*b + 4]
                     prob = conf * class_score
-                    if conf_mask[j, i, b] < conf_thresh:
+                    if conf < conf_thresh:
                         continue
                     if float(prob) < prob_thresh:
                         continue
