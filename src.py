@@ -306,6 +306,66 @@ class PreTaskEncoder(nn.Module):
         return x
 
 
+class SharedDecoder(nn.Module):
+    # code from https://github.com/pbloem/former/blob/59994a9deb2de99535a06f7d86281546b3ce2fa9/former/modules.py
+
+    # output DIM = input ando utput dim
+    # implements wide self attention
+    def __init__(self, DIM, heads = 2, seq_len = 6):
+        super(SharedDecoder, self).__init__()
+        self.dim = DIM
+        self.heads = 2
+
+
+        self.tokeys = nn.Linear(self.dim, self.heads * self.dim, bias = False)
+        self.toqueries = nn.Linear(self.dim, self.heads * self.dim, bias = False)
+        self.tovalues = nn.Linear(self.dim, self.heads * self.dim, bias = False)
+
+        self.unify_heads = nn.Linear(self.heads * self.dim, self.dim)
+
+        self.final_layer = nn.Sequential(
+                nn.Linear(self.dim, self.dim),
+                nn.LeakyReLU()
+                )
+
+
+    def forward(self, x):
+        # x is batch_size, t, dim
+
+        b, t, e = x.size()
+
+
+        h = self.heads
+
+        keys    = self.tokeys(x)   .view(b, t, h, e)
+        queries = self.toqueries(x).view(b, t, h, e)
+        values  = self.tovalues(x) .view(b, t, h, e)
+
+        keys = keys.transpose(1, 2).contiguous().view(b * h, t, e)
+        queries = queries.transpose(1, 2).contiguous().view(b * h, t, e)
+        values = values.transpose(1, 2).contiguous().view(b * h, t, e)
+
+        queries = queries / (e ** (1/4))
+        keys    = keys / (e ** (1/4))
+
+
+        dot = torch.bmm(queries, keys.transpose(1, 2))
+
+        assert dot.size() == (b*h, t, t)
+
+        dot = F.softmax(dot, dim=2)
+        # - dot now has row-wise self-attention probabilities
+
+        # apply the self attention to the values
+        out = torch.bmm(dot, values).view(b, h, t, e)
+
+        # swap h, t back, unify heads
+        out = out.transpose(1, 2).contiguous().view(b, t, h * e)
+        out = self.unify_heads(out)
+        out = self.final_layer(out)
+
+        return out
+
 class ReshapeLayer2d(nn.Module):
     def __init__(self, channels, dim):
         super(ReshapeLayer2d, self).__init__()
@@ -327,7 +387,7 @@ class ReshapeLayer1d(nn.Module):
 
 class YoloDecoder(nn.Module):
     
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, batch_norm = False):
         
         super(YoloDecoder, self).__init__()
 
@@ -336,18 +396,37 @@ class YoloDecoder(nn.Module):
         # takes in dense output from encoder or shared decoder and puts into an
         # image of dim img_dim
 
-        self.m = nn.Sequential(
-            nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
-            nn.ReLU(),
-            ReshapeLayer2d(2, 15),
-            nn.Conv2d(2, 2, kernel_size=3, stride = 1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride = 1),
-            ReshapeLayer1d(288),
-            nn.Linear(288, S * S * (5 * B + self.num_classes)),
-            # Sigmoid is final layer in Yolo v1
-            nn.Sigmoid()
-        )
+        if not batch_norm:
+            self.m = nn.Sequential(
+                    nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
+                    nn.ReLU(),
+                    ReshapeLayer2d(2, 15),
+                    nn.Conv2d(2, 2, kernel_size=3, stride = 1),
+                    nn.ReLU(),
+                    nn.MaxPool2d(kernel_size=2, stride = 1),
+                    ReshapeLayer1d(288),
+                    nn.Linear(288, S * S * (5 * B + self.num_classes)),
+                    # Sigmoid is final layer in Yolo v1
+                    nn.Sigmoid()
+                    )
+        else:
+            nn.Sequential(
+                    nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
+                    nn.BatchNorm1d(2 * 15 * 15),
+                    nn.ReLU(),
+                    ReshapeLayer2d(2, 15),
+                    nn.Conv2d(2, 2, kernel_size=3, stride = 1),
+                    nn.BatchNorm2d(2),
+                    nn.ReLU(),
+                    nn.MaxPool2d(kernel_size=2, stride = 1),
+                    ReshapeLayer1d(288),
+                    # no batch norm before final layer
+                    nn.Linear(288, S * S * (5 * B + self.num_classes)),
+                    # Sigmoid is final layer in Yolo v1
+                    nn.Sigmoid()
+                    )
+
+
         
     def forward(self, x):
 
@@ -516,25 +595,46 @@ class YoloLoss(nn.Module):
         return loss
 
 
-class RmDecoder(nn.Module):
+class RmDecoder(nn.Module, batch_norm = False):
     def __init__(self, rm_dim):
         super(RmDecoder, self).__init__()
         
         self.rm_dim = 800
-        self.model = nn.Sequential(
-            nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
-            nn.ReLU(),
-            ReshapeLayer2d(2, 15),
-            nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 3),
-            nn.ReLU(),
-            nn.ConvTranspose2d(2, 2, kernel_size=10, stride = 2),
-            nn.ReLU(),
-            nn.Upsample(scale_factor=4),
-            nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 2),
-            nn.ReLU(),
-            nn.Conv2d(2, 1, kernel_size = 3, stride = 1),
-            nn.Sigmoid()
-        )
+        if batch_norm:
+            self.model = nn.Sequential(
+                    nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
+                    nn.BatchNorm1d(2 * 15 * 15),
+                    nn.ReLU(),
+                    ReshapeLayer2d(2, 15),
+                    nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 3),
+                    nn.BatchNorm2d(2),
+                    nn.ReLU(),
+                    nn.ConvTranspose2d(2, 2, kernel_size=10, stride = 2),
+                    nn.BatchNorm2d(2),
+                    nn.ReLU(),
+                    nn.Upsample(scale_factor=4),
+                    nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 2),
+                    nn.BatchNorm2d(2),
+                    nn.ReLU(),
+                    nn.Conv2d(2, 1, kernel_size = 3, stride = 1),
+                    nn.Sigmoid()
+                    )
+        else:
+
+            self.model = nn.Sequential(
+                    nn.Linear(6 * ENCODER_HIDDEN, 2 * 15 * 15),
+                    nn.ReLU(),
+                    ReshapeLayer2d(2, 15),
+                    nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 3),
+                    nn.ReLU(),
+                    nn.ConvTranspose2d(2, 2, kernel_size=10, stride = 2),
+                    nn.ReLU(),
+                    nn.Upsample(scale_factor=4),
+                    nn.ConvTranspose2d(2, 2, kernel_size=4, stride = 2),
+                    nn.ReLU(),
+                    nn.Conv2d(2, 1, kernel_size = 3, stride = 1),
+                    nn.Sigmoid()
+                    )
         
     def forward(self, x):
         
@@ -545,21 +645,23 @@ class RmDecoder(nn.Module):
 
 class KobeModel(nn.Module):
     
-    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.35):
+    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.35, batch_norm=False):
+
         super(KobeModel, self).__init__()
         
         
         self.num_classes = num_classes
         self.encoder = PreTaskEncoder(encoder_features)
         
-        #self.shared_decoder = nn.Sequential()
+        # maybe want to expand instead of collapse
+        self.shared_decoder = SharedDecoder(ENCODER_HIDDEN)
         
-        self.yolo_decoder = YoloDecoder(num_classes = num_classes)
+        self.yolo_decoder = YoloDecoder(num_classes = num_classes, batch_norm = batch_norm)
         
         self.yolo_loss = YoloLoss(feature_size=S, num_bboxes=B, num_classes=num_classes, 
                                   lambda_coord=l_coord, lambda_noobj = l_noobj)
         
-        self.rm_decoder = RmDecoder(rm_dim)
+        self.rm_decoder = RmDecoder(rm_dim, batch_norm = False)
         
         self.prob_thresh = prob_thresh
         self.conf_thresh = conf_thresh
@@ -567,15 +669,18 @@ class KobeModel(nn.Module):
 
     def encode(self, x):
         
-        # get all the representations laid out like this
-        x = torch.cat([self.encoder(x[:, i, :]) for i in range(6)], dim = 1)
+        # should be [n_batch, 6, encoder_dim
+        n_batch = x.size(0)
+        t = x.size(1)
+
+        x_enc = FloatTensor(n_batch, t, ENCODER_HIDDEN).fill_(0)
+        for i in range(t):
+            x_enc[:, i, :] = self.encoder(x[:, i, :])
+
+        x = self.shared_decoder(x_enc)
+        x = torch.cat([x[:, i, :] for i in range(t)], dim = 1)
+
             
-            
-        #convert from dense representation from encoder into an image
-        # x.view(...)
-        
-        #x = self.shared_decoder(x)
-        
         return x
     
     def forward(self, x, yolo_targets = None, rm_targets = None ):
