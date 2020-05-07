@@ -9,4 +9,6 @@ data/
 src_2.ipynb
 *.pt.bak
 *.out
+*.ipynb
+
 
