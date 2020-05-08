@@ -124,8 +124,7 @@ with torch.no_grad():
             print(f'{i} - IOU_max: {iou_max}')
         if (i == 30):
             boxes_to_plot = predicted_bounding_boxes
-            print('boxes',boxes_to_plot)
-            print('boxes.shape',boxes_to_plot.shape)
+            real_boxes = ats_bounding_boxes
 
     print('Finished testing bounding box')
 
@@ -142,21 +141,26 @@ with torch.no_grad():
 
         if (i == 30):
             roadmap_to_plot = predicted_road_map
-            print('roadmap',roadmap_to_plot)
-            print('roadmap.shape',roadmap_to_plot.shape)
+            real_roadmap = ts_road_map
 
     print('Finished testing road map')
 
-print('Generating Plot')
-#reordered = boxes_to_plot[:, :, [0, 2, 3, 1]]
-reordered = boxes_to_plot
+print('Generating Plots')
 fig, ax = plt.subplots()
 ax.imshow(np.squeeze(roadmap_to_plot) > 0.53, cmap ='binary');
 ax.plot(400, 400, 'x', color="cyan")
-for i, bb in enumerate(reordered):
+for i, bb in enumerate(boxes_to_plot):
     draw_box(ax, bb, color='red')
     pass
-plt.savefig('sample30_boxes.png')
+plt.savefig('predicted_map.png')
+
+fig, ax = plt.subplots()
+ax.imshow(np.squeeze(real_roadmap) > 0.53, cmap ='binary');
+ax.plot(400, 400, 'x', color="cyan")
+for i, bb in enumerate(real_boxes):
+    draw_box(ax, bb, color='red')
+    pass
+plt.savefig('real_map.png')
 
 print(f'{model_loader.team_name} - {model_loader.round_number} - Bounding Box Score: {total_ats_bounding_boxes / total:.4} - Road Map Score: {total_ts_road_map / total:.4}')
 print('Max bounding box score: 1.0, Max roadmap score: 1.0')
