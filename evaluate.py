@@ -63,8 +63,7 @@ print(f'Args: {opt}')
 image_folder = opt.data_dir
 annotation_csv = f'{opt.data_dir}/annotation.csv'
 
-#labeled_scene_index = np.arange(120, 134)
-labeled_scene_index = np.arange(120, 121)
+labeled_scene_index = np.arange(120, 134)
 
 # For bounding boxes task
 labeled_trainset_task1 = LabeledDataset(
