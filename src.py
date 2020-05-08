@@ -645,7 +645,7 @@ class RmDecoder(nn.Module):
 
 class KobeModel(nn.Module):
     
-    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.4, batch_norm=False):
+    def __init__(self, num_classes, encoder_features, rm_dim, prob_thresh=0.1, conf_thresh=0.1, nms_thresh=0.4, batch_norm=False, shared_decoder=False):
 
         super(KobeModel, self).__init__()
         
@@ -653,8 +653,11 @@ class KobeModel(nn.Module):
         self.num_classes = num_classes
         self.encoder = PreTaskEncoder(encoder_features)
         
-        # maybe want to expand instead of collapse
-        self.shared_decoder = SharedDecoder(ENCODER_HIDDEN)
+        self.shared_decoder_bool = shared_decoder
+
+        if shared_decoder:
+            # maybe want to expand instead of collapse
+            self.shared_decoder = SharedDecoder(ENCODER_HIDDEN)
         
         self.yolo_decoder = YoloDecoder(num_classes = num_classes, batch_norm = batch_norm)
         
@@ -669,17 +672,19 @@ class KobeModel(nn.Module):
 
     def encode(self, x):
         
-        # should be [n_batch, 6, encoder_dim
-        n_batch = x.size(0)
-        t = x.size(1)
+        if self.shared_decoder_bool:
+            # should be [n_batch, 6, encoder_dim
+            n_batch = x.size(0)
+            t = x.size(1)
 
-        x_enc = FloatTensor(n_batch, t, ENCODER_HIDDEN).fill_(0)
-        for i in range(t):
-            x_enc[:, i, :] = self.encoder(x[:, i, :])
+            x_enc = FloatTensor(n_batch, t, ENCODER_HIDDEN).fill_(0)
+            for i in range(t):
+                x_enc[:, i, :] = self.encoder(x[:, i, :])
 
-        x = self.shared_decoder(x_enc)
-        x = torch.cat([x[:, i, :] for i in range(t)], dim = 1)
-
+            x = self.shared_decoder(x_enc)
+            x = torch.cat([x[:, i, :] for i in range(t)], dim = 1)
+        else:
+            x = torch.cat([self.encoder(x[:, i, :]) for i in range(6)], dim = 1)
             
         return x
     
