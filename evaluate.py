@@ -148,7 +148,8 @@ with torch.no_grad():
     print('Finished testing road map')
 
 print('Generating Plot')
-reordered = boxes_to_plot[:, :, [0, 2, 3, 1]]
+#reordered = boxes_to_plot[:, :, [0, 2, 3, 1]]
+reordered = boxes_to_plot
 fig, ax = plt.subplots()
 ax.imshow(np.squeeze(roadmap_to_plot) > 0.53, cmap ='binary');
 ax.plot(400, 400, 'x', color="cyan")
