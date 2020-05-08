@@ -124,7 +124,7 @@ with torch.no_grad():
             print(f'{i} - IOU_max: {iou_max}')
         if (i == 30):
             boxes_to_plot = predicted_bounding_boxes
-            real_boxes = ats_bounding_boxes
+            real_boxes = target['bounding_box'][0]
 
     print('Finished testing bounding box')
 
@@ -141,7 +141,7 @@ with torch.no_grad():
 
         if (i == 30):
             roadmap_to_plot = predicted_road_map
-            real_roadmap = ts_road_map
+            real_roadmap = road_image
             print(real_roadmap)
             print(real_roadmap.shape)
 
@@ -157,8 +157,7 @@ for i, bb in enumerate(boxes_to_plot):
 plt.savefig('predicted_map.png')
 
 fig, ax = plt.subplots()
-#ax.imshow(np.squeeze(real_roadmap) > 0.53, cmap ='binary');
-ax.imshow(real_roadmap > 0.53, cmap ='binary');
+ax.imshow(np.squeeze(real_roadmap) > 0.53, cmap ='binary');
 ax.plot(400, 400, 'x', color="cyan")
 for i, bb in enumerate(real_boxes):
     draw_box(ax, bb, color='red')
