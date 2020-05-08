@@ -75,5 +75,8 @@ class ModelLoader():
         
         samples.to(self.device)
         road_map, _ = self.model.get_road_map(samples)
-        
+
+        # binarize for a better score
+        road_map = road_map > 0.5
+
         return road_map
